@@ -1,4 +1,5 @@
  #define TINY_GSM_MODEM_SIM7600
+#include <Arduino.h>
 #include <esp_task_wdt.h>
 #include <WiFi.h>
 #include <WebServer.h>
@@ -769,15 +770,6 @@ void taskMQTTPublish(void *pvParameters) {
                   last_info_send = millis();
               }
               xSemaphoreGive(mqttMutex);
-          }
-      }
-          
-          if (mqtt.publish(TOPIC_INFO, infoPayload)) {
-              Serial.printf("[MQTT] Info Updated -> RSSI: %d\n", current_rssi);
-              last_ip = current_ip;
-              last_wifi = current_wifi;
-              last_rssi = current_rssi;
-              last_info_send = millis();
           }
       }
 
