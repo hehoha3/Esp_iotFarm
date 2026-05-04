@@ -84,6 +84,13 @@ void taskNetwork(void *pvParameters) {
     const unsigned long WIFI_RECHECK_INTERVAL = 600000; 
 
     while (1) {
+        if (setup_mode) {
+            // Update wifi_start_time so that once we exit setup_mode, 
+            // we have a full 15s to try WiFi before switching to GSM.
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
         bool current_wifi_ok = (WiFi.status() == WL_CONNECTED);
 
         if (current_wifi_ok) {
