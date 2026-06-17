@@ -119,9 +119,9 @@ void redirectToDashboard() {
 volatile bool alarm_cloud = false; // Cờ có cảnh báo mới từ cloud
 String alarm_message = "";         // Nội dung cảnh báo từ cloud
    
-const char *TOPIC_CONFIG = "factory/device03/config";
-const char *TOPIC_ALARM  = "factory/device03/alarm"; 
-const char *TOPIC_INFO   = "factory/device03/info";
+const char *TOPIC_CONFIG = "factory/device02/config";
+const char *TOPIC_ALARM  = "factory/device02/alarm"; 
+const char *TOPIC_INFO   = "factory/device02/info";
 
 // ================== MODBUS STRUCT  ==================
 struct SlaveGroup
@@ -942,7 +942,7 @@ void taskNetwork(void *pvParameters){
 						LOG("NET", "GSM connected, IP: %s", global_gsm_ip.c_str());
 
 						// Sync NTP qua GSM — retry tối đa 3 lần, mỗi lần cách 5s
-						if (!ntp_synced) {
+						if (WiFi.status() == WL_CONNECTED && !ntp_synced) {
 							for (int _r = 0; _r < 3 && !ntp_synced; _r++) {
 								vTaskDelay(pdMS_TO_TICKS(5000));
 								syncNTP();
@@ -1188,7 +1188,7 @@ void taskMQTTPublish(void *pvParameters) {
         char slaveTopic[100];
         char payload[1024]; 
 
-        snprintf(slaveTopic, sizeof(slaveTopic), "factory/device03/slave%d", myGroups[i].id);
+        snprintf(slaveTopic, sizeof(slaveTopic), "factory/device02/slave%d", myGroups[i].id);
 
         int offset = 0;
         if (myGroups[i].isLost) {
@@ -1595,8 +1595,10 @@ void setup()
 	xTaskCreatePinnedToCore(taskModbus,  "Modbus", 4096, NULL, 2, NULL, 1);
 	xTaskCreatePinnedToCore(taskAlarm,   "Alarm",  2048, NULL, 2, NULL, 1);
 
-	// xTaskCreatePinnedToCore(taskOTA_HTTP,  "OTA", 8192, NULL, 1, NULL, 0);
-	xTaskCreatePinnedToCore(taskOTA_HTTPS, "OTA", 12288, NULL, 1, NULL, 0);
+    if (WiFi.status() == WL_CONNECTED) {
+        xTaskCreatePinnedToCore(taskOTA_HTTPS, "OTA", 12288, NULL, 1, NULL, 0);
+        // xTaskCreatePinnedToCore(taskOTA_HTTP,  "OTA", 8192, NULL, 1, NULL, 0);
+    }
 
 	esp_task_wdt_delete(NULL);
 	LOG("SYSTEM", "Setup hoàn tất");
